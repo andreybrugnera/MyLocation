@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">My Location</string>
+    <string name="latitude">Latitude</string>
+    <string name="longitude">Longitude</string>
+    <string name="error_load_last_location">Erro ao obter a última localização do dispositivo</string>
+    <string name="last_location">Última localização</string>
 </resources>
