@@ -2,6 +2,7 @@ package br.edu.ifsp.mylocation;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -203,5 +204,17 @@ public class MainActivity extends Activity implements
         lastLocation = location;
         Log.i(TAG, "Localização atualizada");
         showLastLocation();
+    }
+
+    /**
+     * Abre google maps com a localização
+     * atual do dispositivo
+     * @param v
+     */
+    public void showGoogleMaps(View v){
+        Intent intent = new Intent(this, MapsActivity.class);
+        intent.putExtra("latitude",lastLocation.getLatitude());
+        intent.putExtra("longitude",lastLocation.getLongitude());
+        startActivity(intent);
     }
 }
