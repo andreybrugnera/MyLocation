@@ -9,17 +9,21 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.View;
+import android.widget.CompoundButton;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
 import java.util.List;
 
 public class MainActivity extends Activity implements
         GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener {
+        GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     //Cliente da Api do google services
@@ -27,12 +31,31 @@ public class MainActivity extends Activity implements
     //Úlitma localização obtida
     private Location lastLocation;
 
+    //Intervalo de atualização da localização
+    private static int UPDATE_INTERVAL = 5000; //5 segundos
+    private static int DISPLACEMENT = 10; // Atualização a cada 10 metros
+    private LocationRequest locationRequest;
+    private boolean autoUpdateLocation = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         buildGoogleApiClient();
+        createLocationRequest();
+
+        //Botão para iniciar ou interromper a atualização automática da localização
+        final ToggleButton toggle = (ToggleButton) findViewById(R.id.tbt_update_location);
+        toggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    startLocationUpdates();
+                } else {
+                    stopLocationUpdates();
+                }
+            }
+        });
     }
 
     @Override
@@ -50,6 +73,21 @@ public class MainActivity extends Activity implements
         if (googleApiClient != null) {
             googleApiClient.disconnect();
         }
+        stopLocationUpdates();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (autoUpdateLocation) {
+            startLocationUpdates();
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        stopLocationUpdates();
     }
 
     /**
@@ -59,11 +97,11 @@ public class MainActivity extends Activity implements
     public void loadLastLocation() {
         LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         List<String> locationProviders = locationManager.getProviders(true);
-        try{
+        try {
             //Busca a localização mais precisa e guarda em lastLocation
             for (String provider : locationProviders) {
                 Location location = locationManager.getLastKnownLocation(provider);
-                Log.i(TAG, "Obtendo localização por ("+provider+"): "+location);
+                Log.i(TAG, "Obtendo localização por (" + provider + "): " + location);
                 if (location == null) {
                     continue;
                 }
@@ -71,7 +109,7 @@ public class MainActivity extends Activity implements
                     lastLocation = location;
                 }
             }
-        }catch(SecurityException se){
+        } catch (SecurityException se) {
             Log.e(TAG, getResources().getString(R.string.error_load_last_location), se);
         }
     }
@@ -87,7 +125,10 @@ public class MainActivity extends Activity implements
     }
 
     public void showLastLocation(View v) {
-        loadLastLocation();
+        showLastLocation();
+    }
+
+    private void showLastLocation() {
         if (lastLocation != null) {
             double latitude = lastLocation.getLatitude();
             double longitude = lastLocation.getLongitude();
@@ -105,6 +146,38 @@ public class MainActivity extends Activity implements
         }
     }
 
+    protected void createLocationRequest() {
+        locationRequest = new LocationRequest();
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        locationRequest.setInterval(UPDATE_INTERVAL);
+        locationRequest.setSmallestDisplacement(DISPLACEMENT);
+    }
+
+
+    /**
+     * Inicia a atualização da localização de tempos em tempos
+     */
+    protected void startLocationUpdates() {
+        try {
+            LocationServices.FusedLocationApi.requestLocationUpdates(
+                    googleApiClient, locationRequest, this);
+            autoUpdateLocation = true;
+        } catch (SecurityException ex) {
+            Log.e(TAG, getResources().getString(R.string.error_load_last_location), ex);
+        }
+    }
+
+    /**
+     * Interrompoe a atualização da localização
+     */
+    protected void stopLocationUpdates() {
+        if (googleApiClient != null && googleApiClient.isConnected()) {
+            LocationServices.FusedLocationApi.removeLocationUpdates(
+                    googleApiClient, this);
+        }
+        autoUpdateLocation = false;
+    }
+
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
@@ -112,11 +185,23 @@ public class MainActivity extends Activity implements
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        loadLastLocation();
+        //Ao se conectar, obtém a última localização
+        if (autoUpdateLocation) {
+            startLocationUpdates();
+        } else {
+            loadLastLocation();
+        }
     }
 
     @Override
     public void onConnectionSuspended(int i) {
 
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        lastLocation = location;
+        Log.i(TAG, "Localização atualizada");
+        showLastLocation();
     }
 }

@@ -4,4 +4,6 @@
     <string name="longitude">Longitude</string>
     <string name="error_load_last_location">Erro ao obter a última localização do dispositivo</string>
     <string name="last_location">Última localização</string>
+    <string name="start_location_updates">Atualizar localização automáticamente</string>
+    <string name="stop_location_updates">Interromper atualização de localização</string>
 </resources>
