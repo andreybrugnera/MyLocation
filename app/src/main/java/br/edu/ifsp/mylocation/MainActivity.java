@@ -1,12 +1,15 @@
 package br.edu.ifsp.mylocation;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.CompoundButton;
@@ -95,6 +98,10 @@ public class MainActivity extends Activity implements
      * do dispositivo
      */
     public void loadLastLocation() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 0);
+            return;
+        }
         LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         List<String> locationProviders = locationManager.getProviders(true);
         try {
@@ -111,6 +118,18 @@ public class MainActivity extends Activity implements
             }
         } catch (SecurityException se) {
             Log.e(TAG, getResources().getString(R.string.error_load_last_location), se);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 0) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+                loadLastLocation();
+            } else {
+                Log.e(TAG, getResources().getString(R.string.sem_permissao));
+            }
         }
     }
 
@@ -151,6 +170,7 @@ public class MainActivity extends Activity implements
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         locationRequest.setInterval(UPDATE_INTERVAL);
         locationRequest.setSmallestDisplacement(DISPLACEMENT);
+        locationRequest.setFastestInterval(5000);
     }
 
 
