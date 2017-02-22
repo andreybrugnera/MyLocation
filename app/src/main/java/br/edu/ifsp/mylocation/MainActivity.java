@@ -213,8 +213,7 @@ public class MainActivity extends Activity implements
      */
     public void showGoogleMaps(View v){
         Intent intent = new Intent(this, MapsActivity.class);
-        intent.putExtra("latitude",lastLocation.getLatitude());
-        intent.putExtra("longitude",lastLocation.getLongitude());
+        intent.putExtra("location", lastLocation);
         startActivity(intent);
     }
 }

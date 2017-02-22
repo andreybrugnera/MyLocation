@@ -1,5 +1,6 @@
 package br.edu.ifsp.mylocation;
 
+import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 
@@ -13,6 +14,8 @@ import com.google.android.gms.maps.model.MarkerOptions;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap googleMaps;
+
+    private Location location;
     private double latitude;
     private double longitude;
 
@@ -24,9 +27,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
-        latitude = getIntent().getDoubleExtra("latitude",0);
-        longitude = getIntent().getDoubleExtra("longitude",0);
-
+        location = getIntent().getParcelableExtra("location");
+        latitude = location.getLatitude();
+        longitude = location.getLongitude();
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
