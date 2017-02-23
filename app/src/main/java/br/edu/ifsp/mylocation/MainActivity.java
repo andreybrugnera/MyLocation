@@ -1,10 +1,8 @@
 package br.edu.ifsp.mylocation;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
-import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -19,8 +17,6 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-
-import java.util.List;
 
 public class MainActivity extends Activity implements
         GoogleApiClient.ConnectionCallbacks,
@@ -96,6 +92,13 @@ public class MainActivity extends Activity implements
      * do dispositivo
      */
     public void loadLastLocation() {
+        try{
+            lastLocation = LocationServices.FusedLocationApi.getLastLocation(
+                    googleApiClient);
+        }catch(SecurityException ex){
+            Log.e(TAG, getResources().getString(R.string.error_load_last_location), ex);
+        }
+        /*
         LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         List<String> locationProviders = locationManager.getProviders(true);
         try {
@@ -112,7 +115,7 @@ public class MainActivity extends Activity implements
             }
         } catch (SecurityException se) {
             Log.e(TAG, getResources().getString(R.string.error_load_last_location), se);
-        }
+        }*/
     }
 
     /**
